@@ -1,16 +1,33 @@
-from flask import Flask, request, jsonify
-import joblib
+from flask import Flask, jsonify, request
+import pickle
+import pandas as pd
 
-app = Flask(__name__)
-model = joblib.load('iris_model.pkl')
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    data = request.get_json(force=True)
-    features = data['features']
-    prediction = model.predict([features])
-    return jsonify({'prediction': int(prediction[0])})
+app=Flask(__name__)
 
+model = pickle.load(open('iris_model.pkl','rb'))
+
+
+@app.route("/", methods =['GET','POST']) #http://www.google.com/
+
+def home():
+    if (request.method=='GET'):
+        data="hello, world!"
+        return jsonify({'data':data})
+
+
+@app.route('/predict/')
+def price_predict():
+    
+    sepal_length=request.args.get('Sepal length')
+    sepal_width=request.args.get('Sepal width')
+    petal_length=request.args.get('Petal length')
+    petal_width=request.args.get('Petal width')
+    #print('unplckle completed')
+    #print(model)
+    test_df=pd.DataFrame({'Sepal length':[sepal_length], 'Sepal width':[sepal_width], "Petal length":[petal_length],"Petal width": [petal_width]})
+    pred=model.predict(test_df)
+    return jsonify({"Iris":pred.tolist() })
+    
 if __name__ == '__main__':
-    app.run(debug=True)
-
+    app.run(port=4000,debug=True)
